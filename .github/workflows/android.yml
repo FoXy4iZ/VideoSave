@@ -48,6 +48,10 @@ jobs:
           yes | sdkmanager --licenses || true
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Fix JVM target compatibility
+        run: |
+          sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' extracted/**/app/build.gradle.kts
+          
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
