@@ -56,6 +56,34 @@ jobs:
             exit 1
           fi
           sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' "$BUILD_FILE"
+
+      - name: Set Java target to 17
+        run: |
+          BUILD_FILE=$(find extracted -path '*/app/build.gradle.kts' -print -quit)
+          python3 - "$BUILD_FILE" <<'PY'
+          import sys
+          import re
+          from pathlib import Path
+
+          p = Path(sys.argv[1])
+          s = p.read_text()
+
+          match = re.search(r'(?m)^([ \t]*)android\s*\{', s)
+          if not match:
+              raise SystemExit("android block not found")
+
+          indent = match.group(1) + "    "
+          block = (
+              "\n" + indent + "compileOptions {\n"
+              + indent + "    sourceCompatibility = JavaVersion.VERSION_17\n"
+              + indent + "    targetCompatibility = JavaVersion.VERSION_17\n"
+              + indent + "}\n"
+          )
+
+          s = s[:match.end()] + block + s[match.end():]
+          p.write_text(s)
+          print("Java target set to 17")
+          PY
           
       - name: Build APK
         run: |
