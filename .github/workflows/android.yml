@@ -47,10 +47,15 @@ jobs:
           export ANDROID_HOME="$ANDROID_SDK_ROOT"
           yes | sdkmanager --licenses || true
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
+      
       - name: Fix JVM target compatibility
         run: |
-          sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' extracted/**/app/build.gradle.kts
+          BUILD_FILE=$(find extracted -path '*/app/build.gradle.kts' -print -quit)
+          if [ -z "$BUILD_FILE" ]; then
+            echo "app/build.gradle.kts not found"
+            exit 1
+          fi
+          sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' "$BUILD_FILE"
           
       - name: Build APK
         run: |
